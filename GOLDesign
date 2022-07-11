@@ -1,0 +1,75 @@
+
+module GOLNode
+(
+        input logic[9:0][9:0] Neighbours,
+        input logic[3:0] i, j,
+        output logic Node
+);
+    logic [4:0] NeighboursCount;
+    logic NextNode;
+    logic tlc, ts, trc, ls, m, rs, blc, bs, brc;
+
+    always_comb
+    begin
+        assign tlc = ((i == 9 || j == 9)? 0 : Neighbours[i + 1][j + 1]);
+        assign ts = (i == 9? 0 : Neighbours[i + 1][j]);
+        assign trc = ((i == 9 || j == 0)? 0 : Neighbours[i + 1][j - 1]);
+        assign ls = (j == 9? 0 : Neighbours[i][j + 1]);
+        assign m = Neighbours[i][j];
+        assign rs = (j == 0? 0 : Neighbours[i][j - 1]);
+        assign blc = ((i == 0 || j == 9)? 0 : Neighbours[i - 1][j + 1]);
+        assign bs = (i == 0? 0 : Neighbours[i - 1][j]);
+        assign brc = ((i == 0 || j == 0)? 0 : Neighbours[i - 1][j - 1]);
+
+
+        NeighboursCount = tlc +
+                    ts +
+                    trc +
+                    ls +
+                    rs +
+                    blc +
+                    bs +
+                    brc;
+
+        case(NeighboursCount)
+            3'b010: NextNode = m;
+            3'b011: NextNode = 1;
+            default: NextNode = 0;
+        endcase
+
+        assign Node = NextNode;
+    end
+endmodule
+
+
+module GameOfLife(
+    input logic[9:0][9:0] InitialTable,
+    input logic reset, clk,
+    output logic[9:0][9:0] OutputTable
+);
+
+    logic [9:0][9:0] CurrentTable;
+    logic [9:0][9:0] NextTable;
+
+    always_ff @(posedge reset, posedge clk)
+    begin
+        if(reset)
+            CurrentTable <= InitialTable;
+        else
+            CurrentTable <= NextTable;
+    end
+
+    generate
+        genvar i,j;
+        for (i = 9; i >= 0; i = i - 1)
+        begin
+            for (j = 9; j >= 0; j = j - 1)
+            begin
+                GOLNode m(CurrentTable, i, j, NextTable[i][j]);
+            end
+        end
+    endgenerate
+
+    assign OutputTable = CurrentTable;
+
+endmodule

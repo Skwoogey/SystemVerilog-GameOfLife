@@ -1,0 +1,57 @@
+module testbench();
+
+    logic clk;
+    logic reset;
+    logic[9:0][9:0] in, out;
+    logic [31:0] vectornum;
+    logic[9:0][9:0] testvectors[10000:0];
+    
+    integer i;
+    GameOfLife dut(in, reset, clk, out);
+
+    always
+        begin
+            clk = 1; #5; clk = 0; #5;
+        end
+
+    initial
+        begin
+            in[9] = 10'b1000000000;
+            in[8] = 10'b0110000000;
+            in[7] = 10'b1100000000;
+            in[6] = 10'b0000000000;
+            in[5] = 10'b0000000000;
+            in[4] = 10'b0000000000;
+            in[3] = 10'b0000000000;
+            in[2] = 10'b0000000000;
+            in[1] = 10'b0000000000;
+            in[0] = 10'b0000000000;
+
+            for(i = 9; i >= 0; i--)
+            begin
+                $display("%b", in[i]);
+            end
+            vectornum = 0;
+            reset = 0; #5
+            reset = 1; #15; reset = 0;
+        end
+
+    always@(negedge clk)
+    begin
+        if (~reset)
+        begin
+            $display("outputs = ");
+            for (i = 9; i >= 0; i = i - 1)
+            begin
+                $display("%b", out[i]);
+            end
+
+            vectornum = vectornum + 1;
+            if (vectornum === 8)
+            begin
+                $display("done");
+                $finish;
+            end
+        end
+    end
+endmodule
